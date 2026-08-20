@@ -35,17 +35,20 @@ public class TelemetryRepository : ITelemetryRepository
             if (filterParams.From is not null) query = query.Where(t => t.Timestamp >= filterParams.From);
             if (filterParams.To is not null) query = query.Where(t => t.Timestamp <= filterParams.To);
 
-            if (filterParams.SortBy == "Timestamp")
+            var sortBy = filterParams.SortBy?.Trim().ToLowerInvariant();
+            var order = filterParams.Order?.Trim().ToLowerInvariant();
+
+            if (sortBy == "timestamp")
             {
-                  query = filterParams.Order == "asc" ? query.OrderBy(t => t.Timestamp) : query.OrderByDescending(t => t.Timestamp);
+                  query = order == "asc" ? query.OrderBy(t => t.Timestamp) : query.OrderByDescending(t => t.Timestamp);
             }
-            else if (filterParams.SortBy == "TemperatureC")
+            else if (sortBy == "temperatureC")
             {
-                  query = filterParams.Order == "asc" ? query.OrderBy(t => t.TemperatureC) : query.OrderByDescending(t => t.TemperatureC);
+                  query = order == "asc" ? query.OrderBy(t => t.TemperatureC) : query.OrderByDescending(t => t.TemperatureC);
             }
-            else if (filterParams.SortBy == "Humidity")
+            else if (sortBy == "humidity")
             {
-                  query = filterParams.Order == "asc" ? query.OrderBy(t => t.Humidity) : query.OrderByDescending(t => t.Humidity);
+                  query = order == "asc" ? query.OrderBy(t => t.Humidity) : query.OrderByDescending(t => t.Humidity);
             }
 
             var totalCount = await query.CountAsync();
