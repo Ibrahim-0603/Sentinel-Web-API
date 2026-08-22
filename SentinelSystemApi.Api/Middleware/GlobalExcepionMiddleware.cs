@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Logging;
 using SentinelSystemApi.Api.Exceptions;
 
 namespace SentinelSystemApi.Api.Middleware;
@@ -32,6 +33,10 @@ public class GlobalExceptionMiddleware
 			.GroupBy(e => e.PropertyName).ToDictionary(g => g.Key, g => g.Select(e => e.ErrorMessage).ToArray());
 
 			await WriteProblemDetails(context, 400, "Bad Request", "One or more validation problems occured");
+		}
+		catch(ForbiddenException e)
+		{
+			await WriteProblemDetails(context, 403, "Forbidden", e.Message);
 		}
 		catch (Exception e)
 		{

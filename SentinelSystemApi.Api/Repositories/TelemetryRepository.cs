@@ -14,7 +14,9 @@ public class TelemetryRepository : ITelemetryRepository
 	}
 	public async Task<PagedResult<Telemetry>> Query(TelemetryFilterParams filterParams)
 	{
-		var query = _context.Telemetries.AsNoTracking().AsQueryable();
+		var query = _context.Telemetries.Include(t => t.Device).AsNoTracking().AsQueryable();
+
+		if (filterParams.OwnerId is not null) query = query.Where(t => t.Device.OwnerId == filterParams.OwnerId);
 		if (filterParams.Pir is not null) query = query.Where(t => t.Pir == filterParams.Pir);
 		if (filterParams.MinTemperatureC is not null)
 		{
@@ -42,7 +44,7 @@ public class TelemetryRepository : ITelemetryRepository
 		{
 			query = order == "asc" ? query.OrderBy(t => t.Timestamp) : query.OrderByDescending(t => t.Timestamp);
 		}
-		else if (sortBy == "temperatureC")
+		else if (sortBy == "temperaturec")
 		{
 			query = order == "asc" ? query.OrderBy(t => t.TemperatureC) : query.OrderByDescending(t => t.TemperatureC);
 		}
@@ -64,7 +66,7 @@ public class TelemetryRepository : ITelemetryRepository
 		};
 	}
 
-	public async Task<Telemetry?> GetById(int id) => await _context.Telemetries.AsNoTracking().FirstOrDefaultAsync(t => t.Id == id);
+	public async Task<Telemetry?> GetById(int id) => await _context.Telemetries.Include(t => t.Device).AsNoTracking().FirstOrDefaultAsync(t => t.Id == id);
 
 	public async Task<Telemetry> AddTelemetry(Telemetry telemetry)
 	{

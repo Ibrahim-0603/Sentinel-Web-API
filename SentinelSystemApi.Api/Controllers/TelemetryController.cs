@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SentinelSystemApi.Api.DTOs;
 using SentinelSystemApi.Api.Models.Filters;
@@ -19,16 +21,20 @@ public class TelemetryController : ControllerBase
 	}
 
 	[HttpGet]
+	[Authorize]
 	public async Task<ActionResult<PagedResult<TelemetryResponseDto>>> GetAll([FromQuery] TelemetryFilterParams filterParams)
 	{
-		var result = await _telemetryService.GetAllTelemetry(filterParams);
+		var (userId, isAdmin) = GetCurrentUser();
+		var result = await _telemetryService.GetAllTelemetry(filterParams, userId, isAdmin);
 		return Ok(result);
 	}
 
 	[HttpGet("{id}")]
+	[Authorize]
 	public async Task<ActionResult<TelemetryResponseDto>> GetById(int id)
 	{
-		var result = await _telemetryService.GetTelemetryById(id);
+		var (userId, isAdmin) = GetCurrentUser();
+		var result = await _telemetryService.GetTelemetryById(id, userId, isAdmin);
 		return Ok(result);
 	}
 
@@ -39,9 +45,17 @@ public class TelemetryController : ControllerBase
 		return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
 	}
 	[HttpDelete("{id}")]
+	[Authorize(Roles = "Admin")]
 	public async Task<ActionResult> Delete(int id)
 	{
 		await _telemetryService.DeleteTelemetry(id);
 		return NoContent();
+	}
+
+	private (int userId, bool isAdmin) GetCurrentUser()
+	{
+		var idClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+		var isAdmin = User.IsInRole("Admin");
+		return (int.Parse(idClaim!), isAdmin);
 	}
 }
