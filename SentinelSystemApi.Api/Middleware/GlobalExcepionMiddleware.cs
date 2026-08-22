@@ -23,6 +23,16 @@ public class GlobalExceptionMiddleware
 		{
 			await WriteProblemDetails(context, 404, "Not Found", e.Message);
 		}
+		catch (UnauthorizedException e)
+		{
+			await WriteProblemDetails(context, 401, "Unauthoirzed access", e.Message);
+		}
+		catch(FluentValidation.ValidationException e){
+			var errors = e.Errors
+			.GroupBy(e => e.PropertyName).ToDictionary(g => g.Key, g => g.Select(e => e.ErrorMessage).ToArray());
+
+			await WriteProblemDetails(context, 400, "Bad Request", "One or more validation problems occured");
+		}
 		catch (Exception e)
 		{
 			_logger.LogError(e, "Unhandled Exception");

@@ -23,7 +23,7 @@ public class TelemetryService : ITelemetryService
 		var result = await _telemetryRepository.Query(filterParams);
 		return new PagedResult<TelemetryResponseDto>
 		{
-			Data = _mapper.Map<IEnumerable<TelemetryResponseDto>> (result.Data),
+			Data = _mapper.Map<IEnumerable<TelemetryResponseDto>>(result.Data),
 			Page = result.Page,
 			PageSize = result.PageSize,
 			TotalCount = result.TotalCount
@@ -33,7 +33,7 @@ public class TelemetryService : ITelemetryService
 	public async Task<TelemetryResponseDto> GetTelemetryById(int id)
 	{
 		var telemetry = await _telemetryRepository.GetById(id);
-		if(telemetry is null) throw new NotFoundException(id, "telemetry");
+		if (telemetry is null) throw new NotFoundException(id, "Telemetry");
 		return _mapper.Map<TelemetryResponseDto>(telemetry);
 	}
 
@@ -48,7 +48,7 @@ public class TelemetryService : ITelemetryService
 	public async Task DeleteTelemetry(int id)
 	{
 		var telemetry = await _telemetryRepository.GetById(id);
-		if (telemetry is null) throw new NotFoundException(id, "telemetry");
-		await _telemetryRepository.DeleteTelemetry(id);
+		if (telemetry is null) throw new NotFoundException(id, "Telemetry");
+		await _telemetryRepository.DeleteTelemetry(telemetry);
 	}
 }

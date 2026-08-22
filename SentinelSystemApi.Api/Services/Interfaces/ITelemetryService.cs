@@ -6,9 +6,9 @@ namespace SentinelSystemApi.Api.Services;
 
 public interface ITelemetryService
 {
-      Task<PagedResult<TelemetryResponseDto>> GetAllTelemetry(TelemetryFilterParams filterParams);
-      Task<TelemetryResponseDto> GetTelemetryById(int id);
-      Task<TelemetryResponseDto> AddTelemetry(TelemetryRequestDto requestDto);
-      Task DeleteTelemetry(int id);
+	Task<PagedResult<TelemetryResponseDto>> GetAllTelemetry(TelemetryFilterParams filterParams);
+	Task<TelemetryResponseDto> GetTelemetryById(int id);
+	Task<TelemetryResponseDto> AddTelemetry(TelemetryRequestDto requestDto);
+	Task DeleteTelemetry(int id);
 
 }

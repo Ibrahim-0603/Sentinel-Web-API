@@ -4,10 +4,14 @@ namespace SentinelSystemApi.Api.DTOs;
 
 public class TelemetryRequestDto
 {
-      [Required]
+      [Required(ErrorMessage = "PIR state required")]
       public bool Pir { get; set; }
-      [Required]
+
+      [Required(ErrorMessage = "Temperature required")]
+      [Range(-30, 999)]
       public Decimal TemperatureC { get; set; }
-      [Required]
+
+      [Required(ErrorMessage = "Humidity required")]
+      [Range(0, 100)]
       public Decimal Humidity { get; set; }
 }

@@ -4,9 +4,9 @@ using SentinelSystemApi.Api.Models;
 
 namespace SentinelSystemApi.Api.Mapping;
 
-public class MappingProfile: Profile
+public class TelemetryMapping: Profile
 {
-      public MappingProfile()
+      public TelemetryMapping()
       {
             CreateMap<Telemetry, TelemetryResponseDto>();
             CreateMap<TelemetryRequestDto, Telemetry >()
