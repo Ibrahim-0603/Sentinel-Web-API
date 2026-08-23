@@ -55,8 +55,8 @@ public class TelemetryService : ITelemetryService
 		if (created.Pir)
 		{
 			var prevReading = await _telemetryRepository.GetLatestReadingByDeviceId(created.DeviceId, created.Id);
-			bool prevPir = prevReading.Pir;
-			if (!prevPir && created.Pir)
+			bool isRisingEdge = prevReading is null || !prevReading.Pir;
+			if (isRisingEdge)
 			{
 				await _eventRepository.Create(new Event
 				{

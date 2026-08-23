@@ -44,11 +44,12 @@ public class DeviceStatusService : IDeviceStatusService
 
         status.Mode = Enum.Parse<DeviceMode>(requestDto.Mode);
         var updated = await _deviceStatusRepository.Update(status);
+        var latestReading = await _telemetryRepository.GetLatestReadingByDeviceId(deviceId);
         await _eventRepository.Create(new Event
         {
             EventType = EventType.ModeChanged,
             Timestamp = DateTime.Now,
-            TelemetryId = _telemetryRepository.GetLatestReadingByDeviceId(deviceId).Id
+            TelemetryId = latestReading?.Id
         });
         return _mapper.Map<DeviceStatusResponseDto>(updated);
     }
@@ -60,6 +61,13 @@ public class DeviceStatusService : IDeviceStatusService
 
         status.Mode = Enum.Parse<DeviceMode>(requestDto.Mode);
         var updated = await _deviceStatusRepository.Update(status);
+        var latestReading = await _telemetryRepository.GetLatestReadingByDeviceId(status.DeviceId);
+        await _eventRepository.Create(new Event
+        {
+            EventType = EventType.ModeChanged,
+            Timestamp = DateTime.Now,
+            TelemetryId = latestReading?.Id
+        });
         return _mapper.Map<DeviceStatusResponseDto>(updated);
     }
 

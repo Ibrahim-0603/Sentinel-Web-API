@@ -21,16 +21,14 @@ public class EventRepository : IEventRepository
         if (filterParams.OwnerId is not null) query = query.Where(e => e.Telemetry != null && e.Telemetry.Device.OwnerId == filterParams.OwnerId);
         if (filterParams.From is not null) query = query.Where(e => e.Timestamp >= filterParams.From);
         if (filterParams.To is not null) query = query.Where(e => e.Timestamp <= filterParams.To);
-        var eventType = filterParams.EventType?.Trim().ToLowerInvariant();
-        if (eventType == "motiondetected") query = query.Where(e => e.EventType == Enum.Parse<EventType>(eventType));
-        if (eventType == "pirread") query = query.Where(e => e.EventType == Enum.Parse<EventType>(eventType));
-        if (eventType == "modechanged") query = query.Where(e => e.EventType == Enum.Parse<EventType>(eventType));
+        if (!string.IsNullOrWhiteSpace(filterParams.EventType) && Enum.TryParse<EventType>(filterParams.EventType, ignoreCase: true, out var eventType))
+            query = query.Where(e => e.EventType == eventType);
 
         string? sortBy = filterParams.SortBy?.Trim().ToLowerInvariant();
         string? order = filterParams.Order?.Trim().ToLowerInvariant();
 
         if (sortBy == "timestamp") query = order == "asc" ? query.OrderBy(e => e.Timestamp) : query.OrderByDescending(e => e.Timestamp);
-        if (sortBy == eventType) query = order == "asc" ? query.OrderBy(e => e.EventType) : query.OrderByDescending(e => e.EventType);
+        if (Enum.TryParse<EventType>(sortBy, ignoreCase: true, out var _)) query = order == "asc" ? query.OrderBy(e => e.EventType) : query.OrderByDescending(e => e.EventType);
 
         var totalCount = await query.CountAsync();
         query = query.Skip((filterParams.Page - 1) * filterParams.PageSize).Take(filterParams.PageSize);
@@ -45,7 +43,7 @@ public class EventRepository : IEventRepository
         };
     }
 
-    public async Task<Event?> GetById(int id) => await _context.Events.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
+    public async Task<Event?> GetById(int id) => await _context.Events.Include(e => e.Telemetry).ThenInclude(t => t.Device).AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
 
     public async Task<Event> Create(Event evnt)
     {
