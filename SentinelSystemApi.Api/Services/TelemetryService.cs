@@ -11,12 +11,14 @@ public class TelemetryService : ITelemetryService
 {
 	private readonly ITelemetryRepository _telemetryRepository;
 	private readonly IDeviceRepository _deviceRepository;
+	private readonly IEventRepository _eventRepository;
 	private readonly IMapper _mapper;
 
-	public TelemetryService(ITelemetryRepository telemetryRepository, IDeviceRepository deviceRepository, IMapper mapper)
+	public TelemetryService(ITelemetryRepository telemetryRepository, IDeviceRepository deviceRepository, IEventRepository eventRepository, IMapper mapper)
 	{
 		_telemetryRepository = telemetryRepository;
 		_deviceRepository = deviceRepository;
+		_eventRepository = eventRepository;
 		_mapper = mapper;
 	}
 
@@ -49,6 +51,22 @@ public class TelemetryService : ITelemetryService
 
 		var telemetry = _mapper.Map<Telemetry>(requestDto);
 		var created = await _telemetryRepository.AddTelemetry(telemetry);
+
+		if (created.Pir)
+		{
+			var prevReading = await _telemetryRepository.GetLatestReadingByDeviceId(created.DeviceId, created.Id);
+			bool prevPir = prevReading.Pir;
+			if (!prevPir && created.Pir)
+			{
+				await _eventRepository.Create(new Event
+				{
+					EventType = Enums.EventType.MotionDetected,
+					Timestamp = created.Timestamp,
+					TelemetryId = created.Id
+				});
+			}
+		}
+
 		return _mapper.Map<TelemetryResponseDto>(created);
 
 	}

@@ -51,11 +51,15 @@ builder.Services.AddScoped<IDeviceRepository, DeviceRepository>();
 builder.Services.AddScoped<IDeviceService, DeviceService>();
 builder.Services.AddScoped<IDeviceStatusRepository, DeviceStatusRepository>();
 builder.Services.AddScoped<IDeviceStatusService, DeviceStatusService>();
+builder.Services.AddScoped<IEventRepository, EventRepository>();
+builder.Services.AddScoped<IEventService, EventService>();
 
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
 builder.Services.AddAutoMapper(typeof(TelemetryMapping));
 builder.Services.AddAutoMapper(typeof(UserMapping));
 builder.Services.AddAutoMapper(typeof(DeviceMapping));
+builder.Services.AddAutoMapper(typeof(EventMapping));
+builder.Services.AddAutoMapper(typeof(DeviceStatusMapping));
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestDto>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
 {

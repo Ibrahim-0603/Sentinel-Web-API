@@ -80,4 +80,12 @@ public class TelemetryRepository : ITelemetryRepository
 		_context.Telemetries.Remove(telemetry);
 		await _context.SaveChangesAsync();
 	}
+
+	public async Task<Telemetry?> GetLatestReadingByDeviceId(int deviceId, int? excludedId = null)
+	{
+
+		var query = _context.Telemetries.AsNoTracking().Where(t => t.DeviceId == deviceId);
+		if (excludedId is not null) query = query.Where(t => t.Id != excludedId);
+		return await query.OrderByDescending(t => t.Timestamp).FirstOrDefaultAsync();
+	}
 }

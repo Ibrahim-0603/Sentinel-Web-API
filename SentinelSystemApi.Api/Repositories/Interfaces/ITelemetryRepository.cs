@@ -9,4 +9,5 @@ public interface ITelemetryRepository
 	Task<Telemetry?> GetById(int id);
 	Task<Telemetry> AddTelemetry(Telemetry telemetry);
 	Task DeleteTelemetry(Telemetry telemetry);
+	Task<Telemetry?> GetLatestReadingByDeviceId(int deviceId, int? excludedId = null);
 }

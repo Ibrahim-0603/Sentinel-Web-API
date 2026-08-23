@@ -2,6 +2,7 @@ using AutoMapper;
 using SentinelSystemApi.Api.DTOs;
 using SentinelSystemApi.Api.Enums;
 using SentinelSystemApi.Api.Exceptions;
+using SentinelSystemApi.Api.Models;
 using SentinelSystemApi.Api.Repositories;
 
 namespace SentinelSystemApi.Api.Services;
@@ -9,11 +10,15 @@ namespace SentinelSystemApi.Api.Services;
 public class DeviceStatusService : IDeviceStatusService
 {
     private readonly IDeviceStatusRepository _deviceStatusRepository;
+    private readonly IEventRepository _eventRepository;
+    private readonly ITelemetryRepository _telemetryRepository;
     private readonly IMapper _mapper;
 
-    public DeviceStatusService(IDeviceStatusRepository deviceStatusRepository, IMapper mapper)
+    public DeviceStatusService(IDeviceStatusRepository deviceStatusRepository, IEventRepository eventRepository, ITelemetryRepository telemetryRepository, IMapper mapper)
     {
         _deviceStatusRepository = deviceStatusRepository;
+        _eventRepository = eventRepository;
+        _telemetryRepository = telemetryRepository;
         _mapper = mapper;
     }
 
@@ -39,6 +44,12 @@ public class DeviceStatusService : IDeviceStatusService
 
         status.Mode = Enum.Parse<DeviceMode>(requestDto.Mode);
         var updated = await _deviceStatusRepository.Update(status);
+        await _eventRepository.Create(new Event
+        {
+            EventType = EventType.ModeChanged,
+            Timestamp = DateTime.Now,
+            TelemetryId = _telemetryRepository.GetLatestReadingByDeviceId(deviceId).Id
+        });
         return _mapper.Map<DeviceStatusResponseDto>(updated);
     }
     public async Task<DeviceStatusResponseDto> UpdateStatusByName(string deviceName, UpdateDeviceStatusRequestDto requestDto, int callerId, bool isAdmin)

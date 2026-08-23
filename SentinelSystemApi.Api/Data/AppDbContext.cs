@@ -50,7 +50,9 @@ public class AppDbContext : DbContext
 		{
 			entity.HasKey(e => e.Id);
 			entity.Property(e => e.ClipPath);
-			entity.Property(e => e.Notes);
+			entity.Property(e => e.Notes).HasMaxLength(1000);
+			entity.Property(e => e.Timestamp).IsRequired().HasDefaultValueSql("GETDATE()");
+			entity.Property(e => e.EventType).IsRequired();
 
 			entity.HasOne(t => t.Telemetry).WithMany(e => e.Events).HasForeignKey(e => e.TelemetryId).OnDelete(DeleteBehavior.SetNull);
 		});
