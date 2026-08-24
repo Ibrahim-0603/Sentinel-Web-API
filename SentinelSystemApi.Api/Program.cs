@@ -1,7 +1,10 @@
 using System.Reflection;
+using System.Security.Claims;
 using System.Text;
+using System.Threading.RateLimiting;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
@@ -60,6 +63,41 @@ builder.Services.AddAutoMapper(typeof(UserMapping));
 builder.Services.AddAutoMapper(typeof(DeviceMapping));
 builder.Services.AddAutoMapper(typeof(EventMapping));
 builder.Services.AddAutoMapper(typeof(DeviceStatusMapping));
+builder.Services.AddRateLimiter(options =>
+{
+    options.OnRejected = async (context, token) =>
+        {
+            context.HttpContext.Response.StatusCode = 429;
+            if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
+            {
+                context.HttpContext.Response.Headers.RetryAfter = retryAfter.TotalSeconds.ToString();
+            }
+            await context.HttpContext.Response.WriteAsJsonAsync(
+                new
+                {
+                    title = "Too many requests",
+                    status = 429
+                },
+                token);
+        };
+
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(HttpContext =>
+    {
+        var key = HttpContext.User.Identity?.IsAuthenticated == true ? HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)!.Value :
+        HttpContext.Connection.RemoteIpAddress?.ToString() ?? "anonymous";
+
+        return RateLimitPartition.GetFixedWindowLimiter(key, _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 10,
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0
+        });
+    });
+});
+
+
+
+
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestDto>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
 {
@@ -78,6 +116,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
 });
 builder.Services.AddAuthorization();
 
+
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -91,8 +131,12 @@ if (app.Environment.IsDevelopment())
         );
     });
 }
+
+
 app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseHttpsRedirection();
+app.UseRouting();
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
