@@ -66,7 +66,8 @@ public class DeviceService : IDeviceService
             PanAngle = 0,
             TiltAngle = 0
         });
-        return _mapper.Map<DeviceResponseDto>(created);
+        var withOwnerName = await _deviceRepository.GetById(created.Id);
+        return _mapper.Map<DeviceResponseDto>(withOwnerName);
     }
 
     public async Task<DeviceResponseDto> UpdateDevice(int id, DeviceRequestDto requestDto, int callerId, bool isAdmin)
