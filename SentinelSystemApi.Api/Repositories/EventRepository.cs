@@ -28,7 +28,6 @@ public class EventRepository : IEventRepository
         string? order = filterParams.Order?.Trim().ToLowerInvariant();
 
         if (sortBy == "timestamp") query = order == "asc" ? query.OrderBy(e => e.Timestamp) : query.OrderByDescending(e => e.Timestamp);
-        if (Enum.TryParse<EventType>(sortBy, ignoreCase: true, out var _)) query = order == "asc" ? query.OrderBy(e => e.EventType) : query.OrderByDescending(e => e.EventType);
 
         var totalCount = await query.CountAsync();
         query = query.Skip((filterParams.Page - 1) * filterParams.PageSize).Take(filterParams.PageSize);
