@@ -1,16 +1,16 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using SentinelSystemApi.Api.DTOs;
 using SentinelSystemApi.Api.Models.Filters;
-using SentinelSystemApi.Api.Repositories;
 using SentinelSystemApi.Api.Services;
 
 namespace SentinelSystemApi.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-
+[DisableRateLimiting]
 public class TelemetryController : ControllerBase
 {
 	private readonly ITelemetryService _telemetryService;
